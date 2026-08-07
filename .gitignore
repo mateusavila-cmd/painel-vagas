@@ -1,0 +1,24 @@
+# Dependencies
+/node_modules
+
+# Next.js build output
+/.next/
+/out/
+tsconfig.tsbuildinfo
+
+# Environment variables (segredos - nunca commitar)
+.env
+.env*.local
+
+# Banco de dados local (SQLite dev) - recriado via npm run setup:db
+/prisma/dev.db
+/prisma/dev.db-journal
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db

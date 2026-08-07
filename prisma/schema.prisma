@@ -1,0 +1,146 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("RECRUITER") // ADMIN | RECRUITER
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdJobs  Job[]    @relation("CreatedJobs")
+  assignedJobs Job[]    @relation("AssignedJobs")
+}
+
+model Job {
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  company      String
+  location     String
+  type         String      // CLT, PJ, Temporário, Estágio, Freelance
+  category     String      @default("CLT") // CLT | PRESTADOR - define qual landing page é exibida
+  description  String
+  requirements String
+  salary       String?
+  benefits     String?     // Benefícios (somente categoria CLT: VR, VT, plano de saúde etc.)
+  active       Boolean     @default(true)
+  viewsCount   Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  createdById  String
+  createdBy    User        @relation("CreatedJobs", fields: [createdById], references: [id])
+  
+  assignedUsers User[]     @relation("AssignedJobs")
+  candidates   Candidate[]
+}
+
+model Candidate {
+  id        String   @id @default(cuid())
+  name      String
+  whatsapp  String
+  notes     String?
+  status    String   @default("NOVO") // NOVO | EM_ANALISE | ENTREVISTA | APROVADO | REJEITADO
+  createdAt DateTime @default(now())
+
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+// Conteúdo editável (chrome/textos fixos) das landing pages públicas, um registro por categoria.
+// Placeholders suportados em campos de texto: {empresa} e {cargo}, substituídos pelos dados da oportunidade.
+model LandingContent {
+  id        String   @id @default(cuid())
+  category  String   @unique // CLT | PRESTADOR
+  updatedAt DateTime @updatedAt
+
+  // Hero
+  heroTitle    String? // Somente PRESTADOR (CLT usa o título da oportunidade)
+  heroSubtitle String?
+  heroBadgeLabel String? // Somente PRESTADOR (ex: "Pagamento por diária")
+  trustBadge1  String? // Somente PRESTADOR
+  trustBadge2  String? // Somente PRESTADOR
+
+  // Botões (CTA)
+  ctaHeaderLabel    String
+  ctaPrimaryLabel   String
+  ctaSecondaryLabel String
+
+  // Títulos de seção
+  sectionSobreTitle      String? // Somente CLT ("Sobre a Oportunidade")
+  sectionRequisitosTitle String? // Somente CLT
+  sectionBeneficiosTitle String? // Somente CLT
+  resumoTitle             String? // Somente CLT
+  sobreTitle              String? // Somente PRESTADOR ("Sobre a Rotina Operacional")
+  preRequisitosTitle      String? // Somente PRESTADOR
+  vantagensTitle          String?
+  comoFuncionaTitle       String?
+  depoimentosTitle        String?
+  faqTitle                String?
+
+  // CLT: aviso de segurança e caixa de retorno rápido
+  safetyNote         String?
+  responseTimeTitle  String?
+  responseTimeText   String?
+
+  // Prestador: CTA final
+  ctaFinalTitle    String?
+  ctaFinalSubtitle String?
+
+  // Estado "encerrado"
+  closedTitle      String
+  closedMessage    String
+  closedFooterNote String
+
+  features     LandingFeature[]
+  steps        LandingStep[]
+  testimonials LandingTestimonial[]
+  faqs         LandingFaq[]
+}
+
+model LandingFeature {
+  id          String         @id @default(cuid())
+  contentId   String
+  content     LandingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  order       Int            @default(0)
+}
+
+model LandingStep {
+  id          String         @id @default(cuid())
+  contentId   String
+  content     LandingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  order       Int            @default(0)
+}
+
+model LandingTestimonial {
+  id        String         @id @default(cuid())
+  contentId String
+  content   LandingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  name      String
+  role      String
+  text      String
+  order     Int            @default(0)
+}
+
+model LandingFaq {
+  id        String         @id @default(cuid())
+  contentId String
+  content   LandingContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  question  String
+  answer    String
+  order     Int            @default(0)
+}
