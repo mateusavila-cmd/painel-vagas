@@ -111,12 +111,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        <div className="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-500 space-y-1">
-          <p className="font-semibold text-slate-600">Acesso Padrão de Demonstração:</p>
-          <p>Admin: <span className="font-mono text-brand-700 font-bold">admin@empresa.com</span> / <span className="font-mono font-bold">admin123</span></p>
-          <p>Recrutador: <span className="font-mono text-indigo-700 font-bold">recrutador@empresa.com</span> / <span className="font-mono font-bold">recrutador123</span></p>
-        </div>
       </div>
     </div>
   )
