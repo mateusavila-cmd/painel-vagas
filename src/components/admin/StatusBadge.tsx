@@ -3,7 +3,7 @@
 export type CandidateStatusType = 'NOVO' | 'EM_ANALISE' | 'ENTREVISTA' | 'APROVADO' | 'REJEITADO'
 
 interface StatusBadgeProps {
-  // Aceita string ampla pois o SQLite não tem enums (campo vem como string do Prisma);
+  // Aceita string ampla pois o campo é String no Prisma (não um enum nativo do banco);
   // casos não mapeados caem no default (null) sem alterar comportamento.
   status: CandidateStatusType | 'ACTIVE' | 'INACTIVE' | (string & {})
   size?: 'sm' | 'md'

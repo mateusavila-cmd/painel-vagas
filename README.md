@@ -8,7 +8,7 @@ Sistema web completo para gestão de recrutamento e seleção, com painel admini
 
 - **Framework**: Next.js 14 (App Router, TypeScript)
 - **Estilização**: Tailwind CSS + Lucide Icons + Google Fonts (Inter)
-- **Banco de Dados & ORM**: Prisma ORM v5.22.0 (SQLite para desenvolvimento local sem necessidade de banco externo, com suporte pronto para PostgreSQL/Supabase em produção)
+- **Banco de Dados & ORM**: Prisma ORM v5.22.0 (Postgres via Vercel Storage/Neon, mesmo banco em desenvolvimento e produção)
 - **Autenticação**: Cookies HTTP-Only com JWT (`jose`), senhas com hash (`bcryptjs`)
 - **Validação & Segurança**: Zod, proteção de rotas via Middleware Next.js
 - **Exportação de Dados**: Geração de CSV compatível com Excel (UTF-8 BOM)
@@ -110,9 +110,14 @@ npm install
 ```
 
 ### 4. Configurar Variáveis de Ambiente
-Crie ou verifique o arquivo `.env` na raiz do projeto:
+O projeto usa Postgres (Neon, via Vercel Storage) tanto em produção quanto em desenvolvimento local. Puxe as credenciais do projeto Vercel (rode no seu próprio terminal, não em ferramentas de terceiros):
+```bash
+npx vercel env pull .env.vercel --environment=production
+```
+Copie `POSTGRES_PRISMA_URL` e `POSTGRES_URL_NON_POOLING` desse arquivo para o seu `.env` (veja `.env.example` para o formato completo):
 ```env
-DATABASE_URL="file:./dev.db"
+POSTGRES_PRISMA_URL="postgresql://..."
+POSTGRES_URL_NON_POOLING="postgresql://..."
 JWT_SECRET="sua-chave-secreta-super-segura-rh-vagas-2026"
 NEXT_PUBLIC_APP_URL="http://localhost:3005"
 ```
@@ -143,4 +148,4 @@ npm run migrate:dev
 ```
 Isso cria uma nova migration revisável e aplica no seu `dev.db` local. Nunca use `prisma db push` no dia a dia — ele não deixa histórico e pode ser destrutivo.
 
-Para o processo de deploy em produção (VPS), incluindo o passo a passo seguro para não perder dados reais, veja **[DEPLOY.md](./DEPLOY.md)**.
+Para o processo de deploy em produção (Vercel + Postgres), incluindo o passo a passo seguro para não perder dados reais, veja **[DEPLOY.md](./DEPLOY.md)**.

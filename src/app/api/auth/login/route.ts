@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       id: user.id,
       name: user.name,
       email: user.email,
-      // Campo role é string no SQLite (sem enums); valores são restritos na criação de usuários
+      // Campo role é String no Prisma (sem enum nativo); valores são restritos na criação de usuários
       role: user.role as UserSessionPayload['role'],
     })
 
