@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Plus, Search, Copy, Edit, Trash2, ExternalLink, Power, Users } from 'lucide-react'
+import { Plus, Search, Copy, Edit, Trash2, ExternalLink, Power, Users, Check, X, Filter } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { useToast } from '@/components/ui/Toast'
+
+type ApprovalStatus = 'PENDENTE' | 'APROVADA' | 'REJEITADA'
 
 interface Job {
   id: string
@@ -16,6 +18,7 @@ interface Job {
   category: string
   salary?: string | null
   active: boolean
+  approvalStatus: ApprovalStatus
   createdAt: string
   _count: { candidates: number }
   assignedUsers: Array<{ id: string; name: string }>
@@ -26,6 +29,8 @@ export default function VagasPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [approvalFilter, setApprovalFilter] = useState<'ALL' | ApprovalStatus>('ALL')
 
   const fetchJobs = async () => {
     try {
@@ -41,8 +46,21 @@ export default function VagasPage() {
     }
   }
 
+  const fetchCurrentUser = async () => {
+    try {
+      const res = await fetch('/api/auth/me')
+      if (res.ok) {
+        const data = await res.json()
+        setIsAdmin(data.user?.role === 'ADMIN')
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
     fetchJobs()
+    fetchCurrentUser()
   }, [])
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
@@ -63,6 +81,30 @@ export default function VagasPage() {
       }
     } catch (err) {
       showToast('Erro ao alterar status da oportunidade', 'error')
+    }
+  }
+
+  const handleApprovalDecision = async (id: string, decision: 'APROVADA' | 'REJEITADA') => {
+    try {
+      const res = await fetch(`/api/vagas/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approvalStatus: decision }),
+      })
+
+      if (res.ok) {
+        showToast(
+          decision === 'APROVADA' ? 'Oportunidade aprovada e publicada!' : 'Oportunidade rejeitada.'
+        )
+        setJobs((prev) =>
+          prev.map((j) => (j.id === id ? { ...j, approvalStatus: decision } : j))
+        )
+      } else {
+        const data = await res.json()
+        showToast(data.error || 'Erro ao atualizar aprovação', 'error')
+      }
+    } catch (err) {
+      showToast('Erro ao atualizar aprovação', 'error')
     }
   }
 
@@ -92,10 +134,13 @@ export default function VagasPage() {
 
   const filteredJobs = jobs.filter(
     (j) =>
-      j.title.toLowerCase().includes(search.toLowerCase()) ||
-      j.company.toLowerCase().includes(search.toLowerCase()) ||
-      j.location.toLowerCase().includes(search.toLowerCase())
+      (approvalFilter === 'ALL' || j.approvalStatus === approvalFilter) &&
+      (j.title.toLowerCase().includes(search.toLowerCase()) ||
+        j.company.toLowerCase().includes(search.toLowerCase()) ||
+        j.location.toLowerCase().includes(search.toLowerCase()))
   )
+
+  const pendingCount = jobs.filter((j) => j.approvalStatus === 'PENDENTE').length
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -116,16 +161,43 @@ export default function VagasPage() {
         </Link>
       </div>
 
+      {isAdmin && pendingCount > 0 && (
+        <button
+          onClick={() => setApprovalFilter('PENDENTE')}
+          className="w-full flex items-center gap-3 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-2xl text-sm font-medium hover:bg-amber-100 transition-colors text-left"
+        >
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+          <span>
+            {pendingCount} {pendingCount === 1 ? 'oportunidade aguardando' : 'oportunidades aguardando'} sua aprovação
+          </span>
+        </button>
+      )}
+
       {/* Filtro de Busca */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-        <Search className="w-5 h-5 text-slate-400 shrink-0" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por título, empresa ou localização..."
-          className="w-full text-sm outline-none bg-transparent text-slate-900 placeholder:text-slate-400"
-        />
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
+          <Search className="w-5 h-5 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por título, empresa ou localização..."
+            className="w-full text-sm outline-none bg-transparent text-slate-900 placeholder:text-slate-400"
+          />
+        </div>
+        <div className="flex items-center gap-2 sm:border-l sm:border-slate-200 sm:pl-3">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+          <select
+            value={approvalFilter}
+            onChange={(e) => setApprovalFilter(e.target.value as 'ALL' | ApprovalStatus)}
+            className="text-sm outline-none bg-transparent text-slate-900 font-medium cursor-pointer"
+          >
+            <option value="ALL">Todos os Status</option>
+            <option value="PENDENTE">Pendentes de Aprovação</option>
+            <option value="APROVADA">Aprovadas</option>
+            <option value="REJEITADA">Rejeitadas</option>
+          </select>
+        </div>
       </div>
 
       {/* Lista de Oportunidades */}
@@ -173,8 +245,12 @@ export default function VagasPage() {
                       <div className="font-medium text-slate-700">{job.location}</div>
                       <div className="text-xs text-slate-500">{job.type}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={job.active ? 'ACTIVE' : 'INACTIVE'} />
+                    <td className="px-6 py-4 whitespace-nowrap space-y-1">
+                      {job.approvalStatus !== 'APROVADA' ? (
+                        <StatusBadge status={job.approvalStatus} />
+                      ) : (
+                        <StatusBadge status={job.active ? 'ACTIVE' : 'INACTIVE'} />
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
@@ -186,6 +262,28 @@ export default function VagasPage() {
                       </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                      {/* Aprovar / Rejeitar (somente admin, somente vagas pendentes) */}
+                      {isAdmin && job.approvalStatus === 'PENDENTE' && (
+                        <>
+                          <button
+                            onClick={() => handleApprovalDecision(job.id, 'APROVADA')}
+                            className="p-2 text-brand-600 hover:text-white hover:bg-brand-600 rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-medium border border-brand-200 hover:border-brand-600"
+                            title="Aprovar oportunidade"
+                          >
+                            <Check className="w-4 h-4" />
+                            <span className="hidden lg:inline">Aprovar</span>
+                          </button>
+                          <button
+                            onClick={() => handleApprovalDecision(job.id, 'REJEITADA')}
+                            className="p-2 text-rose-600 hover:text-white hover:bg-rose-600 rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-medium border border-rose-200 hover:border-rose-600"
+                            title="Rejeitar oportunidade"
+                          >
+                            <X className="w-4 h-4" />
+                            <span className="hidden lg:inline">Rejeitar</span>
+                          </button>
+                        </>
+                      )}
+
                       {/* Copiar URL */}
                       <button
                         onClick={() => handleCopyLink(job.slug)}
@@ -197,15 +295,24 @@ export default function VagasPage() {
                       </button>
 
                       {/* Ver LP */}
-                      <a
-                        href={`/oportunidade/${job.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center"
-                        title="Visualizar Landing Page"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
+                      {job.approvalStatus === 'APROVADA' ? (
+                        <a
+                          href={`/oportunidade/${job.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center"
+                          title="Visualizar Landing Page"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      ) : (
+                        <span
+                          className="p-2 text-slate-300 inline-flex items-center cursor-not-allowed"
+                          title="Disponível após aprovação do admin"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </span>
+                      )}
 
                       {/* Editar */}
                       <Link
@@ -217,17 +324,19 @@ export default function VagasPage() {
                       </Link>
 
                       {/* Alternar Ativa/Desativada */}
-                      <button
-                        onClick={() => handleToggleActive(job.id, job.active)}
-                        className={`p-2 rounded-lg transition-colors inline-flex items-center ${
-                          job.active
-                            ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
-                            : 'text-brand-600 hover:bg-brand-50'
-                        }`}
-                        title={job.active ? 'Desativar oportunidade' : 'Ativar oportunidade'}
-                      >
-                        <Power className="w-4 h-4" />
-                      </button>
+                      {job.approvalStatus === 'APROVADA' && (
+                        <button
+                          onClick={() => handleToggleActive(job.id, job.active)}
+                          className={`p-2 rounded-lg transition-colors inline-flex items-center ${
+                            job.active
+                              ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                              : 'text-brand-600 hover:bg-brand-50'
+                          }`}
+                          title={job.active ? 'Desativar oportunidade' : 'Ativar oportunidade'}
+                        >
+                          <Power className="w-4 h-4" />
+                        </button>
+                      )}
 
                       {/* Excluir */}
                       <button

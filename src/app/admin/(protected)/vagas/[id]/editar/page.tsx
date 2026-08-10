@@ -47,9 +47,11 @@ export default async function EditarVagaPage({
           salary: job.salary,
           benefits: job.benefits,
           active: job.active,
+          approvalStatus: job.approvalStatus,
           assignedUserIds: job.assignedUsers.map((u) => u.id),
         }}
         recruiters={recruiters}
+        isAdmin={user?.role === 'ADMIN'}
       />
     </div>
   )

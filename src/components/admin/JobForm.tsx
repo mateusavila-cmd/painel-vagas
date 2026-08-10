@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, ArrowLeft, Loader2, Briefcase, HardHat } from 'lucide-react'
+import { Save, ArrowLeft, Loader2, Briefcase, HardHat, Clock } from 'lucide-react'
 import Link from 'next/link'
+import { StatusBadge } from './StatusBadge'
 
 interface Recruiter {
   id: string
@@ -31,13 +32,15 @@ interface JobFormProps {
     salary?: string | null
     benefits?: string | null
     active: boolean
+    approvalStatus?: string
     assignedUserIds?: string[]
   }
   recruiters?: Recruiter[]
   isEditing?: boolean
+  isAdmin?: boolean
 }
 
-export function JobForm({ initialData, recruiters = [], isEditing = false }: JobFormProps) {
+export function JobForm({ initialData, recruiters = [], isEditing = false, isAdmin = false }: JobFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -126,11 +129,25 @@ export function JobForm({ initialData, recruiters = [], isEditing = false }: Job
             {isEditing ? 'Editar Oportunidade' : 'Criar Nova Oportunidade'}
           </h2>
         </div>
+        {isEditing && initialData?.approvalStatus && initialData.approvalStatus !== 'APROVADA' && (
+          <StatusBadge status={initialData.approvalStatus} />
+        )}
       </div>
 
       {error && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
           {error}
+        </div>
+      )}
+
+      {!isAdmin && (!isEditing || initialData?.approvalStatus === 'REJEITADA') && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+          <Clock className="w-5 h-5 shrink-0 mt-0.5" />
+          <p>
+            {initialData?.approvalStatus === 'REJEITADA'
+              ? 'Esta oportunidade foi rejeitada. Ao salvar, ela voltará para a fila de aprovação de um administrador.'
+              : 'Esta oportunidade ficará pendente até que um administrador aprove a publicação. Ela não ficará visível na landing page pública até lá.'}
+          </p>
         </div>
       )}
 

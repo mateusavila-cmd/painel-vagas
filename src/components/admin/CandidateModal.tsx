@@ -1,9 +1,9 @@
 ﻿'use client'
 
 import { useState } from 'react'
-import { X, Save, Calendar, Phone, Briefcase, FileText, Loader2, MessageCircle } from 'lucide-react'
+import { X, Save, Calendar, Phone, Briefcase, FileText, Loader2, MessageCircle, CheckCircle2 } from 'lucide-react'
 import { StatusBadge, CandidateStatusType } from './StatusBadge'
-import { formatDate, getWhatsAppLink } from '@/lib/utils'
+import { formatDate, getWhatsAppLink, buildRecruiterWhatsAppMessage } from '@/lib/utils'
 
 interface Candidate {
   id: string
@@ -11,6 +11,7 @@ interface Candidate {
   whatsapp: string
   notes?: string | null
   status: CandidateStatusType
+  whatsappContactedAt?: string | null
   createdAt: string
   job: {
     id: string
@@ -31,6 +32,23 @@ export function CandidateModal({ candidate, onClose, onUpdate }: CandidateModalP
   const [notes, setNotes] = useState(candidate.notes || '')
   const [status, setStatus] = useState<CandidateStatusType>(candidate.status)
   const [loading, setLoading] = useState(false)
+  const [whatsappContactedAt, setWhatsappContactedAt] = useState(candidate.whatsappContactedAt || null)
+
+  const handleWhatsAppClick = async () => {
+    const now = new Date().toISOString()
+    setWhatsappContactedAt(now)
+
+    try {
+      await fetch(`/api/candidatos/${candidate.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappContactedAt: now }),
+      })
+      onUpdate({ ...candidate, whatsappContactedAt: now })
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   const handleSave = async () => {
     setLoading(true)
@@ -43,7 +61,7 @@ export function CandidateModal({ candidate, onClose, onUpdate }: CandidateModalP
 
       if (res.ok) {
         const updated = await res.json()
-        onUpdate({ ...candidate, notes: updated.notes, status: updated.status })
+        onUpdate({ ...candidate, notes: updated.notes, status: updated.status, whatsappContactedAt })
         onClose()
       }
     } catch (err) {
@@ -87,16 +105,31 @@ export function CandidateModal({ candidate, onClose, onUpdate }: CandidateModalP
             <a
               href={getWhatsAppLink(
                 candidate.whatsapp,
-                `Olá ${candidate.name.split(' ')[0]}, tudo bem? Vi seu interesse na oportunidade de ${candidate.job.title} aqui na ${candidate.job.company}.`
+                buildRecruiterWhatsAppMessage(candidate.name, candidate.job.title, candidate.job.company)
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-600 hover:text-white border border-green-200 hover:border-green-600 px-3 py-1.5 rounded-lg transition-colors"
+              onClick={handleWhatsAppClick}
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors border ${
+                whatsappContactedAt
+                  ? 'text-green-700 bg-green-50 border-green-300 hover:bg-green-100'
+                  : 'text-green-700 bg-green-50 hover:bg-green-600 hover:text-white border-green-200 hover:border-green-600'
+              }`}
             >
-              <MessageCircle className="w-3.5 h-3.5" />
+              {whatsappContactedAt ? (
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              ) : (
+                <MessageCircle className="w-3.5 h-3.5" />
+              )}
               Conversar
             </a>
           </div>
+          {whatsappContactedAt && (
+            <div className="flex items-center gap-1.5 text-xs text-green-700">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Contatado via WhatsApp em {formatDate(whatsappContactedAt)}</span>
+            </div>
+          )}
         </div>
 
         <div>

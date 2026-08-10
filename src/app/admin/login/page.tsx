@@ -29,7 +29,7 @@ export default function LoginPage() {
         throw new Error(data.error || 'Erro ao realizar login')
       }
 
-      router.push('/admin/dashboard')
+      router.push(data.user?.role === 'RECRUITER' ? '/admin/candidatos' : '/admin/dashboard')
       router.refresh()
     } catch (err: any) {
       setError(err.message)

@@ -106,7 +106,7 @@ export function CandidateFormModal({
             </div>
             <h3 className="font-display text-2xl font-bold tracking-tight text-white">Interesse Registrado!</h3>
             <p className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-base font-medium leading-relaxed text-emerald-100">
-              Recebemos seu interesse! Nossa equipe de RH entrará em contato pelo WhatsApp em até 24 horas.
+              Recebemos seu interesse! Nossa equipe entrará em contato pelo WhatsApp em até 24 horas.
             </p>
             <div className="pt-4">
               <button

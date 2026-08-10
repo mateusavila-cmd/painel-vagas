@@ -14,11 +14,14 @@ export async function PATCH(
 
     const { id } = params
     const body = await request.json()
-    const { status, notes } = body
+    const { status, notes, whatsappContactedAt } = body
 
     const updateData: any = {}
     if (status) updateData.status = status
     if (notes !== undefined) updateData.notes = notes
+    if (whatsappContactedAt !== undefined) {
+      updateData.whatsappContactedAt = whatsappContactedAt ? new Date(whatsappContactedAt) : null
+    }
 
     const updatedCandidate = await db.candidate.update({
       where: { id },

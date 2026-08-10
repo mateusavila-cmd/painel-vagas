@@ -52,6 +52,11 @@ export async function PUT(
       )
     }
 
+    const existingJob = await db.job.findUnique({ where: { id }, select: { approvalStatus: true } })
+    if (!existingJob) {
+      return NextResponse.json({ error: 'Oportunidade não encontrada' }, { status: 404 })
+    }
+
     const { title, company, location, type, category, description, requirements, salary, benefits, active, assignedUserIds } = validation.data
 
     const updateData: any = {
@@ -65,6 +70,12 @@ export async function PUT(
       salary: salary || null,
       benefits: benefits || null,
       active,
+    }
+
+    // Reenvio automático para aprovação: se um não-admin edita uma vaga rejeitada,
+    // ela volta a ficar pendente para uma nova validação do admin.
+    if (user.role !== 'ADMIN' && existingJob.approvalStatus === 'REJEITADA') {
+      updateData.approvalStatus = 'PENDENTE'
     }
 
     if (assignedUserIds) {
@@ -101,13 +112,35 @@ export async function PATCH(
     const { id } = params
     const body = await request.json()
 
-    if (typeof body.active !== 'boolean') {
-      return NextResponse.json({ error: 'Status ativo deve ser booleano' }, { status: 400 })
+    const updateData: any = {}
+
+    if (body.approvalStatus !== undefined) {
+      if (user.role !== 'ADMIN') {
+        return NextResponse.json(
+          { error: 'Apenas administradores podem aprovar ou rejeitar oportunidades' },
+          { status: 403 }
+        )
+      }
+      if (!['APROVADA', 'REJEITADA', 'PENDENTE'].includes(body.approvalStatus)) {
+        return NextResponse.json({ error: 'Status de aprovação inválido' }, { status: 400 })
+      }
+      updateData.approvalStatus = body.approvalStatus
+    }
+
+    if (body.active !== undefined) {
+      if (typeof body.active !== 'boolean') {
+        return NextResponse.json({ error: 'Status ativo deve ser booleano' }, { status: 400 })
+      }
+      updateData.active = body.active
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: 'Nenhum campo válido para atualizar' }, { status: 400 })
     }
 
     const updatedJob = await db.job.update({
       where: { id },
-      data: { active: body.active },
+      data: updateData,
     })
 
     return NextResponse.json(updatedJob)

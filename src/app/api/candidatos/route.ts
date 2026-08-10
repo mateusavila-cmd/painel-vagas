@@ -109,7 +109,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        message: 'Recebemos seu interesse! Nossa equipe de RH entrará em contato pelo WhatsApp em até 24 horas.',
+        message: 'Recebemos seu interesse! Nossa equipe entrará em contato pelo WhatsApp em até 24 horas.',
         candidateId: candidate.id,
       },
       { status: 201 }

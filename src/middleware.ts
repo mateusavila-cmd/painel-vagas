@@ -19,7 +19,14 @@ export async function middleware(request: NextRequest) {
 
   // Tentando acessar tela de login já estando autenticado
   if (isAuthPage && user) {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    const defaultRoute = user.role === 'RECRUITER' ? '/admin/candidatos' : '/admin/dashboard'
+    return NextResponse.redirect(new URL(defaultRoute, request.url))
+  }
+
+  // Acesso à raiz /admin: leva cada perfil para sua tela padrão
+  if (pathname === '/admin' && user) {
+    const defaultRoute = user.role === 'RECRUITER' ? '/admin/candidatos' : '/admin/dashboard'
+    return NextResponse.redirect(new URL(defaultRoute, request.url))
   }
 
   // Tentando acessar rota admin sem estar logado

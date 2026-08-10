@@ -57,6 +57,19 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
           Encerrada
         </span>
       )
+    case 'PENDENTE':
+      return (
+        <span className={`inline-flex items-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 ${sizeClasses}`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5 animate-pulse" />
+          Pendente de Aprovação
+        </span>
+      )
+    case 'REJEITADA':
+      return (
+        <span className={`inline-flex items-center rounded-full bg-rose-50 text-rose-700 ring-1 ring-inset ring-rose-600/10 ${sizeClasses}`}>
+          Rejeitada
+        </span>
+      )
     default:
       return null
   }

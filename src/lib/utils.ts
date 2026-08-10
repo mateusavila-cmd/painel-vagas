@@ -67,6 +67,14 @@ export function getWhatsAppLink(whatsapp: string, message?: string): string {
 }
 
 /**
+ * Monta a mensagem padrão enviada ao candidato ao clicar no botão de WhatsApp do painel
+ */
+export function buildRecruiterWhatsAppMessage(candidateName: string, jobTitle: string, company: string): string {
+  const firstName = candidateName.split(' ')[0]
+  return `Olá ${firstName}, tudo bem? \n\nVi seu interesse na oportunidade de \n${jobTitle} aqui na ${company}\n\nFaça o seu cadastro em https://app.tarkis.com.br/\n\nAssim que terminar o seu cadastro me avisa aqui! Contamos com você!`
+}
+
+/**
  * Formata data em Português (Brasil)
  */
 export function formatDate(date: Date | string): string {

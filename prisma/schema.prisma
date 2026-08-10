@@ -34,6 +34,7 @@ model Job {
   salary       String?
   benefits     String?     // Benefícios (somente categoria CLT: VR, VT, plano de saúde etc.)
   active       Boolean     @default(true)
+  approvalStatus String    @default("APROVADA") // PENDENTE | APROVADA | REJEITADA - vagas criadas por RECRUITER nascem PENDENTE
   viewsCount   Int         @default(0)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -46,12 +47,13 @@ model Job {
 }
 
 model Candidate {
-  id        String   @id @default(cuid())
-  name      String
-  whatsapp  String
-  notes     String?
-  status    String   @default("NOVO") // NOVO | EM_ANALISE | ENTREVISTA | APROVADO | REJEITADO
-  createdAt DateTime @default(now())
+  id                  String    @id @default(cuid())
+  name                String
+  whatsapp            String
+  notes               String?
+  status              String    @default("NOVO") // NOVO | EM_ANALISE | ENTREVISTA | APROVADO | REJEITADO
+  whatsappContactedAt DateTime? // Preenchido quando o recrutador clica no botão de WhatsApp
+  createdAt           DateTime  @default(now())
 
   jobId     String
   job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)

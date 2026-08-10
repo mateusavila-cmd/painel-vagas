@@ -17,7 +17,7 @@ export default async function NovaVagaPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <JobForm recruiters={recruiters} />
+      <JobForm recruiters={recruiters} isAdmin={user?.role === 'ADMIN'} />
     </div>
   )
 }

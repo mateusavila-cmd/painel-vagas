@@ -12,7 +12,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     where: { slug: params.slug },
   })
 
-  if (!job) {
+  if (!job || job.approvalStatus !== 'APROVADA') {
     return {
       title: 'Oportunidade não encontrada',
     }
@@ -37,7 +37,8 @@ export default async function OportunidadeLandingPage({ params }: PageProps) {
     where: { slug: params.slug },
   })
 
-  if (!job) {
+  // Vagas ainda não aprovadas por um admin (ou rejeitadas) não ficam públicas
+  if (!job || job.approvalStatus !== 'APROVADA') {
     notFound()
   }
 

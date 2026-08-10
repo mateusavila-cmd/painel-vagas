@@ -76,6 +76,10 @@ export async function POST(request: Request) {
       ? assignedUserIds.map((id) => ({ id }))
       : [{ id: user.id }]
 
+    // Vagas criadas por recrutadores nascem pendentes de aprovação de um admin;
+    // vagas criadas por admin já entram aprovadas.
+    const approvalStatus = user.role === 'RECRUITER' ? 'PENDENTE' : 'APROVADA'
+
     const job = await db.job.create({
       data: {
         title,
@@ -89,6 +93,7 @@ export async function POST(request: Request) {
         salary: salary || null,
         benefits: benefits || null,
         active: active !== undefined ? active : true,
+        approvalStatus,
         createdById: user.id,
         assignedUsers: {
           connect: assignedConnect,

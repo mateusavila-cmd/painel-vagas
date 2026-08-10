@@ -46,7 +46,7 @@ Sistema web completo para gestão de recrutamento e seleção, com painel admini
 - **Formulário de Candidatura**:
   - Campos: Nome completo e WhatsApp com DDD (máscara dinâmica `(XX) XXXXX-XXXX` e validação).
   - Tela de confirmação com mensagem personalizada:
-    > *"Recebemos seu interesse! Nossa equipe de RH entrará em contato pelo WhatsApp em até 24 horas."*
+    > *"Recebemos seu interesse! Nossa equipe entrará em contato pelo WhatsApp em até 24 horas."*
 - **Regras de Negócio e Segurança RH**:
   - ❌ NÃO exibe número nem link direto de WhatsApp do RH na página.
   - ❌ NÃO envia mensagens automáticas à pessoa candidata.

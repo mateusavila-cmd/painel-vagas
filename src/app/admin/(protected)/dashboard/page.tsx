@@ -1,7 +1,7 @@
 ﻿import Link from 'next/link'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
-import { Briefcase, Users, CheckCircle, TrendingUp, Plus, ArrowRight, ExternalLink } from 'lucide-react'
+import { Briefcase, Users, CheckCircle, TrendingUp, Plus, ArrowRight, ExternalLink, Clock } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { formatDate } from '@/lib/utils'
 
@@ -19,9 +19,10 @@ export default async function DashboardPage() {
     ]
   }
 
-  const [totalJobs, activeJobsCount, totalCandidatesCount, recentCandidates, activeJobs] = await Promise.all([
+  const [totalJobs, activeJobsCount, pendingJobsCount, totalCandidatesCount, recentCandidates, activeJobs] = await Promise.all([
     db.job.count({ where: jobWhere }),
     db.job.count({ where: { ...jobWhere, active: true } }),
+    db.job.count({ where: { ...jobWhere, approvalStatus: 'PENDENTE' } }),
     db.candidate.count({
       where: user.role === 'RECRUITER' ? { job: jobWhere } : undefined,
     }),
@@ -62,7 +63,26 @@ export default async function DashboardPage() {
       </div>
 
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-5 ${(user.role === 'ADMIN' || pendingJobsCount > 0) ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+        {(user.role === 'ADMIN' || pendingJobsCount > 0) && (
+          <Link
+            href="/admin/vagas"
+            className={`p-6 rounded-2xl border shadow-sm flex items-center gap-4 transition-colors ${
+              pendingJobsCount > 0
+                ? 'bg-amber-50 border-amber-200 hover:bg-amber-100'
+                : 'bg-white border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <div className="p-3.5 bg-amber-100 text-amber-600 rounded-xl">
+              <Clock className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Pendentes de Aprovação</p>
+              <h3 className="text-2xl font-bold text-slate-900 mt-0.5">{pendingJobsCount}</h3>
+            </div>
+          </Link>
+        )}
+
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
           <div className="p-3.5 bg-brand-50 text-brand-600 rounded-xl">
             <CheckCircle className="w-6 h-6" />

@@ -21,7 +21,7 @@ export default async function ProtectedAdminLayout({
         <Header user={user} />
         <div className="flex flex-1">
           <Sidebar userRole={user.role} />
-          <main className="flex-1 p-8 overflow-y-auto">
+          <main className="flex-1 p-4 sm:p-8 overflow-y-auto min-w-0">
             {children}
           </main>
         </div>
