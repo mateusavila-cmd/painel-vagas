@@ -135,3 +135,12 @@ npm run dev
 Abra o navegador em:
 - **Painel Administrativo**: [http://localhost:3005/admin/login](http://localhost:3005/admin/login)
 - **Exemplo de Landing Page Pública**: [http://localhost:3005/oportunidade/desenvolvedor-frontend-react-nextjs-sp-01](http://localhost:3005/oportunidade/desenvolvedor-frontend-react-nextjs-sp-01)
+
+### 7. Alterando o Schema do Banco (`prisma/schema.prisma`)
+O projeto usa **Prisma Migrate** com migrations versionadas em `prisma/migrations/` (commitadas no git). Sempre que alterar o schema:
+```bash
+npm run migrate:dev
+```
+Isso cria uma nova migration revisável e aplica no seu `dev.db` local. Nunca use `prisma db push` no dia a dia — ele não deixa histórico e pode ser destrutivo.
+
+Para o processo de deploy em produção (VPS), incluindo o passo a passo seguro para não perder dados reais, veja **[DEPLOY.md](./DEPLOY.md)**.

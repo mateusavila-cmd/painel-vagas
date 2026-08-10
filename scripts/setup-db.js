@@ -9,8 +9,8 @@ try {
   console.log('1. Gerando o Prisma Client...');
   execSync('npx prisma generate', { cwd: projectDir, stdio: 'inherit' });
 
-  console.log('\n2. Sincronizando tabelas no SQLite (prisma/dev.db)...');
-  execSync('npx prisma db push --accept-data-loss', { cwd: projectDir, stdio: 'inherit' });
+  console.log('\n2. Aplicando migrations versionadas no SQLite (prisma/dev.db)...');
+  execSync('npx prisma migrate deploy', { cwd: projectDir, stdio: 'inherit' });
 
   console.log('\n3. Semeando dados iniciais e usuário Admin...');
   execSync('npx ts-node --compiler-options "{\\"module\\":\\"CommonJS\\"}" prisma/seed.ts', { cwd: projectDir, stdio: 'inherit' });
