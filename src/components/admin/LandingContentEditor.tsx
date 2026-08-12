@@ -35,6 +35,7 @@ interface ContentDraft {
   responseTimeText: string
   ctaFinalTitle: string
   ctaFinalSubtitle: string
+  whatsappMessageTemplate: string
   closedTitle: string
   closedMessage: string
   closedFooterNote: string
@@ -50,7 +51,7 @@ const EMPTY_DRAFT: ContentDraft = {
   sectionSobreTitle: '', sectionRequisitosTitle: '', sectionBeneficiosTitle: '', resumoTitle: '',
   sobreTitle: '', preRequisitosTitle: '', vantagensTitle: '', comoFuncionaTitle: '',
   depoimentosTitle: '', faqTitle: '', safetyNote: '', responseTimeTitle: '', responseTimeText: '',
-  ctaFinalTitle: '', ctaFinalSubtitle: '', closedTitle: '', closedMessage: '', closedFooterNote: '',
+  ctaFinalTitle: '', ctaFinalSubtitle: '', whatsappMessageTemplate: '', closedTitle: '', closedMessage: '', closedFooterNote: '',
   features: [], steps: [], testimonials: [], faqs: [],
 }
 
@@ -362,6 +363,31 @@ export function LandingContentEditor() {
               addLabel="Adicionar pergunta"
               emptyMessage="Nenhuma pergunta cadastrada — esta seção não aparecerá na página."
             />
+          </section>
+
+          {/* Mensagem de WhatsApp enviada pelo recrutador (painel admin, não a página pública) */}
+          <section className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider">Mensagem de WhatsApp do Recrutador</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Texto usado quando um recrutador clica no botão de WhatsApp em Candidatos para chamar esta oportunidade
+                ({category === 'CLT' ? 'Funcionário CLT' : 'Prestador de Serviço'}). Não aparece na landing page pública.
+              </p>
+            </div>
+            <div>
+              <textarea
+                rows={5}
+                value={draft.whatsappMessageTemplate}
+                onChange={(e) => set('whatsappMessageTemplate', e.target.value)}
+                placeholder={'Olá {nome}, tudo bem?\n\nVi seu interesse na oportunidade de {cargo} aqui na {empresa}...'}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm bg-slate-50 focus:bg-white text-slate-900 resize-y font-mono"
+              />
+              <p className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-1">
+                <Info className="w-3 h-3 shrink-0" />
+                Use <code className="bg-slate-100 px-1 rounded">{'{nome}'}</code>, <code className="bg-slate-100 px-1 rounded">{'{cargo}'}</code> e{' '}
+                <code className="bg-slate-100 px-1 rounded">{'{empresa}'}</code> para inserir dinamicamente o primeiro nome do candidato, o título da vaga e a empresa. Deixe em branco para usar a mensagem padrão do sistema.
+              </p>
+            </div>
           </section>
 
           {/* Estado Encerrado */}

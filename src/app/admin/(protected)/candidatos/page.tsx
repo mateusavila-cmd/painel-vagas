@@ -25,6 +25,7 @@ interface Candidate {
     id: string
     title: string
     company: string
+    category: string
   }
 }
 
@@ -38,6 +39,30 @@ export default function CandidatosPage() {
   const [selectedStatus, setSelectedStatus] = useState('ALL')
   const [search, setSearch] = useState('')
   const [activeModalCandidate, setActiveModalCandidate] = useState<Candidate | null>(null)
+  const [whatsappTemplates, setWhatsappTemplates] = useState<Record<string, string>>({})
+
+  // Carrega os templates de mensagem de WhatsApp (editáveis em Conteúdo das Landing Pages), uma vez
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/landing-content/CLT').then((res) => (res.ok ? res.json() : null)),
+      fetch('/api/landing-content/PRESTADOR').then((res) => (res.ok ? res.json() : null)),
+    ])
+      .then(([clt, prestador]) => {
+        setWhatsappTemplates({
+          CLT: clt?.whatsappMessageTemplate || '',
+          PRESTADOR: prestador?.whatsappMessageTemplate || '',
+        })
+      })
+      .catch(() => {})
+  }, [])
+
+  const getWhatsAppMessage = (candidate: Candidate) =>
+    buildRecruiterWhatsAppMessage(
+      candidate.name,
+      candidate.job.title,
+      candidate.job.company,
+      whatsappTemplates[candidate.job.category]
+    )
 
   // Carrega opções de oportunidades e lista de candidatos
   const fetchData = async () => {
@@ -265,7 +290,7 @@ export default function CandidatosPage() {
                   <a
                     href={getWhatsAppLink(
                       candidate.whatsapp,
-                      buildRecruiterWhatsAppMessage(candidate.name, candidate.job.title, candidate.job.company)
+                      getWhatsAppMessage(candidate)
                     )}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -376,7 +401,7 @@ export default function CandidatosPage() {
                         <a
                           href={getWhatsAppLink(
                             candidate.whatsapp,
-                            buildRecruiterWhatsAppMessage(candidate.name, candidate.job.title, candidate.job.company)
+                            getWhatsAppMessage(candidate)
                           )}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -426,6 +451,7 @@ export default function CandidatosPage() {
       {/* Modal de Notas e Detalhes */}
       <CandidateModal
         candidate={activeModalCandidate}
+        whatsappTemplates={whatsappTemplates}
         onClose={() => setActiveModalCandidate(null)}
         onUpdate={(updatedCandidate) => {
           setCandidates((prev) =>

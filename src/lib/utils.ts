@@ -67,10 +67,25 @@ export function getWhatsAppLink(whatsapp: string, message?: string): string {
 }
 
 /**
- * Monta a mensagem padrão enviada ao candidato ao clicar no botão de WhatsApp do painel
+ * Monta a mensagem enviada ao candidato ao clicar no botão de WhatsApp do painel.
+ * Usa o template customizado pelo admin (Conteúdo das Landing Pages) quando disponível,
+ * substituindo {nome}, {cargo} e {empresa}; cai para uma mensagem padrão caso contrário.
  */
-export function buildRecruiterWhatsAppMessage(candidateName: string, jobTitle: string, company: string): string {
+export function buildRecruiterWhatsAppMessage(
+  candidateName: string,
+  jobTitle: string,
+  company: string,
+  template?: string | null
+): string {
   const firstName = candidateName.split(' ')[0]
+
+  if (template && template.trim()) {
+    return template
+      .replace(/\{nome\}/g, firstName)
+      .replace(/\{cargo\}/g, jobTitle)
+      .replace(/\{empresa\}/g, company)
+  }
+
   return `Olá ${firstName}, tudo bem? \n\nVi seu interesse na oportunidade de \n${jobTitle} aqui na ${company}\n\nFaça o seu cadastro em https://app.tarkis.com.br/\n\nAssim que terminar o seu cadastro me avisa aqui! Contamos com você!`
 }
 

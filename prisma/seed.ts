@@ -61,6 +61,7 @@ async function main() {
       closedTitle: 'Oportunidade Encerrada',
       closedMessage: 'As candidaturas para a oportunidade de {cargo} na empresa {empresa} foram encerradas.',
       closedFooterNote: 'Agradecemos o interesse. Fique atento a novas oportunidades em nossos canais de recrutamento.',
+      whatsappMessageTemplate: 'Olá {nome}, tudo bem? \n\nVi seu interesse na oportunidade de \n{cargo} aqui na {empresa}\n\nFaça o seu cadastro em https://app.tarkis.com.br/\n\nAssim que terminar o seu cadastro me avisa aqui! Contamos com você!',
       faqs: {
         create: [
           { question: 'Como funciona o processo seletivo?', answer: 'Nossa equipe analisa seu perfil e entra em contato pelo WhatsApp para os próximos passos, normalmente em até 24 horas úteis.', order: 0 },
@@ -94,6 +95,7 @@ async function main() {
       closedTitle: 'Cadastro Encerrado',
       closedMessage: 'As oportunidades de diária para {cargo} na {empresa} foram encerradas por enquanto.',
       closedFooterNote: 'Fique de olho em nossos canais para novas oportunidades de diária em breve.',
+      whatsappMessageTemplate: 'Olá {nome}, tudo bem? \n\nVi seu interesse na oportunidade de \n{cargo} aqui na {empresa}\n\nFaça o seu cadastro em https://app.tarkis.com.br/\n\nAssim que terminar o seu cadastro me avisa aqui! Contamos com você!',
       features: {
         create: [
           { title: 'Transparência nos repasses', description: 'Visibilidade clara do valor de cada diária antes de você aceitar o turno.', order: 0 },

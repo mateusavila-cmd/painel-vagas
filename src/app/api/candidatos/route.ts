@@ -51,6 +51,7 @@ export async function GET(request: Request) {
             id: true,
             title: true,
             company: true,
+            category: true,
           },
         },
       },

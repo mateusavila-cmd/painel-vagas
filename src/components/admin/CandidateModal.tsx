@@ -17,6 +17,7 @@ interface Candidate {
     id: string
     title: string
     company: string
+    category: string
   }
 }
 
@@ -24,9 +25,10 @@ interface CandidateModalProps {
   candidate: Candidate | null
   onClose: () => void
   onUpdate: (updatedCandidate: Candidate) => void
+  whatsappTemplates?: Record<string, string>
 }
 
-export function CandidateModal({ candidate, onClose, onUpdate }: CandidateModalProps) {
+export function CandidateModal({ candidate, onClose, onUpdate, whatsappTemplates = {} }: CandidateModalProps) {
   if (!candidate) return null
 
   const [notes, setNotes] = useState(candidate.notes || '')
@@ -105,7 +107,12 @@ export function CandidateModal({ candidate, onClose, onUpdate }: CandidateModalP
             <a
               href={getWhatsAppLink(
                 candidate.whatsapp,
-                buildRecruiterWhatsAppMessage(candidate.name, candidate.job.title, candidate.job.company)
+                buildRecruiterWhatsAppMessage(
+                  candidate.name,
+                  candidate.job.title,
+                  candidate.job.company,
+                  whatsappTemplates[candidate.job.category]
+                )
               )}
               target="_blank"
               rel="noopener noreferrer"

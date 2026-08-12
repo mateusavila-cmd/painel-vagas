@@ -46,6 +46,7 @@ export interface LandingContentData {
   responseTimeText: string | null
   ctaFinalTitle: string | null
   ctaFinalSubtitle: string | null
+  whatsappMessageTemplate: string | null
   closedTitle: string
   closedMessage: string
   closedFooterNote: string
@@ -56,9 +57,15 @@ export interface LandingContentData {
 }
 
 /**
- * Substitui os placeholders {empresa} e {cargo} pelo dado real da oportunidade.
+ * Substitui os placeholders {empresa}, {cargo} e {nome} pelo dado real da oportunidade/candidato.
  */
-export function fillTemplate(text: string | null | undefined, vars: { empresa: string; cargo: string }): string {
+export function fillTemplate(
+  text: string | null | undefined,
+  vars: { empresa: string; cargo: string; nome?: string }
+): string {
   if (!text) return ''
-  return text.replace(/\{empresa\}/g, vars.empresa).replace(/\{cargo\}/g, vars.cargo)
+  return text
+    .replace(/\{empresa\}/g, vars.empresa)
+    .replace(/\{cargo\}/g, vars.cargo)
+    .replace(/\{nome\}/g, vars.nome ?? '')
 }

@@ -63,6 +63,7 @@ export const landingContentSchema = z.object({
   responseTimeText: optionalText,
   ctaFinalTitle: optionalText,
   ctaFinalSubtitle: optionalText,
+  whatsappMessageTemplate: optionalText,
   closedTitle: z.string().min(1, 'O título de encerrado é obrigatório'),
   closedMessage: z.string().min(1, 'A mensagem de encerrado é obrigatória'),
   closedFooterNote: z.string().min(1, 'A nota de rodapé é obrigatória'),
