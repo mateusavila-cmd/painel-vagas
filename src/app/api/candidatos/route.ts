@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     const jobId = searchParams.get('jobId')
     const status = searchParams.get('status')
     const search = searchParams.get('search')
+    const recruiterId = searchParams.get('recruiterId')
 
     const whereClause: any = {}
 
@@ -31,6 +32,16 @@ export async function GET(request: Request) {
         { name: { contains: search } },
         { whatsapp: { contains: search } },
       ]
+    }
+
+    if (user.role === 'ADMIN' && recruiterId && recruiterId !== 'ALL') {
+      whereClause.job = {
+        ...whereClause.job,
+        OR: [
+          { createdById: recruiterId },
+          { assignedUsers: { some: { id: recruiterId } } },
+        ],
+      }
     }
 
     // Se for RECRUITER, garante acesso apenas a candidatos de suas oportunidades

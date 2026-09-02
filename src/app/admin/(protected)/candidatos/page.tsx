@@ -39,6 +39,8 @@ export default function CandidatosPage() {
 
   const [selectedJob, setSelectedJob] = useState('ALL')
   const [selectedStatus, setSelectedStatus] = useState('ALL')
+  const [selectedRecruiter, setSelectedRecruiter] = useState('ALL')
+  const [users, setUsers] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const [activeModalCandidate, setActiveModalCandidate] = useState<Candidate | null>(null)
   const [whatsappTemplates, setWhatsappTemplates] = useState<Record<string, string>>({})
@@ -69,9 +71,10 @@ export default function CandidatosPage() {
   // Carrega opções de oportunidades e lista de candidatos
   const fetchData = async () => {
     try {
-      const [jobsRes, candidatesRes] = await Promise.all([
+      const [jobsRes, candidatesRes, usersRes] = await Promise.all([
         fetch('/api/vagas'),
-        fetch(`/api/candidatos?jobId=${selectedJob}&status=${selectedStatus}`),
+        fetch(`/api/candidatos?jobId=${selectedJob}&status=${selectedStatus}&recruiterId=${selectedRecruiter}`),
+        fetch('/api/usuarios').catch(() => null)
       ])
 
       if (jobsRes.ok) {
@@ -83,6 +86,10 @@ export default function CandidatosPage() {
         const candidatesData = await candidatesRes.json()
         setCandidates(candidatesData)
       }
+      if (usersRes && usersRes.ok) {
+        const usersData = await usersRes.json()
+        setUsers(usersData)
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -92,7 +99,7 @@ export default function CandidatosPage() {
 
   useEffect(() => {
     fetchData()
-  }, [selectedJob, selectedStatus])
+  }, [selectedJob, selectedStatus, selectedRecruiter])
 
   const handleInlineStatusChange = async (id: string, newStatus: CandidateStatusType) => {
     try {
@@ -193,7 +200,7 @@ export default function CandidatosPage() {
         </div>
 
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
           <span className="text-sm font-medium text-slate-500">Total de Candidatos</span>
           <span className="text-2xl font-bold text-slate-900 mt-1">{filteredCandidates.length}</span>
@@ -240,7 +247,23 @@ export default function CandidatosPage() {
           </select>
         </div>
 
-        {/* Filtro por Status */}
+        {/* Filtro por Recrutador (Apenas Admin) */}
+          {users.length > 0 && (
+            <div className="flex items-center gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
+              <select
+                value={selectedRecruiter}
+                onChange={(e) => setSelectedRecruiter(e.target.value)}
+                className="w-full text-sm outline-none bg-transparent text-slate-900 font-medium"
+              >
+                <option value="ALL">Todos os Recrutadores</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Filtro por Status */}
         <div className="flex items-center gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
           <select
             value={selectedStatus}
