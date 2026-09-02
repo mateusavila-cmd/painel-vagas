@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
-import { Download, Search, Filter, Phone, MessageSquare, MessageCircle, CheckCircle2, Eye, Trash2 } from 'lucide-react'
+import { Download, Search, Filter, Phone, MessageSquare, MessageCircle, CheckCircle2, Eye, Trash2, Copy } from 'lucide-react'
 import { StatusBadge, CandidateStatusType } from '@/components/admin/StatusBadge'
 import { CandidateModal } from '@/components/admin/CandidateModal'
 import { formatDate, getWhatsAppLink, buildRecruiterWhatsAppMessage } from '@/lib/utils'
@@ -28,6 +28,8 @@ interface Candidate {
     category: string
   }
 }
+
+function maskPhone(phone: string) { if (!phone) return ''; return phone.slice(0, -3) + '***'; }
 
 export default function CandidatosPage() {
   const { showToast } = useToast()
@@ -112,16 +114,30 @@ export default function CandidatosPage() {
   }
 
   const handleDeleteCandidate = async (id: string) => {
-    if (!confirm('Tem certeza que deseja remover este candidato da lista?')) return
+    if (!confirm('Tem certeza que deseja mudar o status deste candidato para Rejeitado?')) return
 
     try {
-      const res = await fetch(`/api/candidatos/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/candidatos/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'REJEITADO' }),
+      })
       if (res.ok) {
-        showToast('Candidato removido!')
-        setCandidates((prev) => prev.filter((c) => c.id !== id))
+        showToast('Candidato rejeitado!')
+        setCandidates((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'REJEITADO' as CandidateStatusType } : c)))
       }
     } catch (err) {
-      showToast('Erro ao excluir candidato', 'error')
+      showToast('Erro ao rejeitar candidato', 'error')
+    }
+  }
+
+  const handleCopyPhone = async (phone: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(phone)
+      showToast('Telefone copiado para a área de transferência!')
+      handleWhatsAppClick(id)
+    } catch (err) {
+      showToast('Erro ao copiar telefone', 'error')
     }
   }
 
@@ -148,11 +164,14 @@ export default function CandidatosPage() {
     showToast('Download do arquivo CSV iniciado!')
   }
 
-  const filteredCandidates = candidates.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.whatsapp.includes(search)
-  )
+  const filteredCandidates = candidates.filter((c) => {
+    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.whatsapp.includes(search)
+    const matchesRejeitado = selectedStatus === 'REJEITADO' ? c.status === 'REJEITADO' : c.status !== 'REJEITADO'
+    return matchesSearch && matchesRejeitado
+  })
+
+  const totalContatados = filteredCandidates.filter(c => c.whatsappContactedAt).length
+  const totalFaltam = filteredCandidates.length - totalContatados
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -170,8 +189,25 @@ export default function CandidatosPage() {
         >
           <Download className="w-4 h-4" />
           <span>Exportar para CSV/Excel</span>
-        </button>
+          </button>
+        </div>
+
+      {/* Cards de Métricas */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
+          <span className="text-sm font-medium text-slate-500">Total de Candidatos</span>
+          <span className="text-2xl font-bold text-slate-900 mt-1">{filteredCandidates.length}</span>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
+          <span className="text-sm font-medium text-amber-600">Faltam Contatar</span>
+          <span className="text-2xl font-bold text-amber-600 mt-1">{totalFaltam}</span>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col">
+          <span className="text-sm font-medium text-green-600">Já Contatados</span>
+          <span className="text-2xl font-bold text-green-600 mt-1">{totalContatados}</span>
+        </div>
       </div>
+
 
       {/* Barra de Filtros */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -267,7 +303,14 @@ export default function CandidatosPage() {
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <div className="flex items-center gap-1.5 font-mono text-slate-700">
                     <Phone className="w-3.5 h-3.5 text-brand-600 shrink-0" />
-                    <span>{candidate.whatsapp}</span>
+                      <span>{maskPhone(candidate.whatsapp)}</span>
+                      <button
+                        onClick={() => handleCopyPhone(candidate.whatsapp, candidate.id)}
+                        className="p-1 text-slate-400 hover:text-brand-600 transition-colors"
+                        title="Copiar telefone completo e marcar como contatado"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
                   </div>
                   <span>{formatDate(candidate.createdAt)}</span>
                 </div>
@@ -372,7 +415,14 @@ export default function CandidatosPage() {
                       <td className="px-6 py-4 whitespace-nowrap font-mono text-slate-800">
                         <div className="flex items-center gap-1.5">
                           <Phone className="w-3.5 h-3.5 text-brand-600" />
-                          <span>{candidate.whatsapp}</span>
+                            <span>{maskPhone(candidate.whatsapp)}</span>
+                            <button
+                              onClick={() => handleCopyPhone(candidate.whatsapp, candidate.id)}
+                              className="p-1 text-slate-400 hover:text-brand-600 transition-colors"
+                              title="Copiar telefone completo e marcar como contatado"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
                         </div>
                       </td>
                       <td className="px-6 py-4">

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Briefcase, Users, ShieldCheck, LayoutTemplate, PanelLeftOpen, PanelLeftClose } from 'lucide-react'
+import { LayoutDashboard, Briefcase, Users, ShieldCheck, LayoutTemplate, BarChart2, PanelLeftOpen, PanelLeftClose } from 'lucide-react'
 
 interface SidebarProps {
   userRole: 'ADMIN' | 'RECRUITER'
@@ -32,6 +32,11 @@ export function Sidebar({ userRole }: SidebarProps) {
   ]
 
   if (userRole === 'ADMIN') {
+    navItems.push({
+      name: 'Relatórios',
+      href: '/admin/relatorios',
+      icon: BarChart2,
+    })
     navItems.push({
       name: 'Conteúdo das Landing Pages',
       href: '/admin/conteudo',
